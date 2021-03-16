@@ -1,0 +1,178 @@
+// import React from "react"
+// // import firebase from "../components/firebase"
+// //import ItemList from '../components/itemList'
+// //import InitEngine from '../components/helmet'
+// import AddItemForm from './addItemForm'
+// import UpdateItem from './updateItem'
+
+// export default () => {
+//   // firebase
+//   //   .firestore()
+//   //   .collection("items")
+//   //   .add({
+//   //     name: "Heineken",
+//   //     type: "beer",
+//   //     qty: 5,
+//   //     description:
+//   //       "Pale lager beer with 5% alcohol by volume produced by the Dutch brewing company Heineken International",
+//   //   })
+//   //   .then(ref => {
+//   //     console.log("Added document with ID: ", ref.id)
+//   //   })
+
+ 
+
+
+//   return (
+//     <>
+//     <ItemList/>
+//       <svg width="720" height="120" style={{border: 'thick double #32a1ce'}}>
+//       <circle cx="60" cy="60" r="20" style={{fill: 'red'}}>un cercle</circle>
+//       <circle cx="130" cy="60" r="7.54983443527075" style={{fill:'steelblue'}}></circle>
+//       <circle cx="230" cy="60" r="10.583005244258363" style ={{fill:'steelblue'}}></circle>
+//       <circle cx="300" cy="60" r="10.583005244258363" style ={{fill:'#ff0000'}}></circle>
+//       </svg>
+//       <h1>AddItemForm</h1>
+//       <AddItemForm/>
+//       <h1>.....</h1>
+//       <UpdateItem/>
+
+//     </>
+//   )
+// }
+
+
+//    {/* {data.map(item=>{ 
+//         return(
+//           <Box style={{display: 'flex', alignContent: 'center'}}>
+//             <Box  border={1} style={{width: '50%'}}>
+//             <h1>{item.attributions[0].name}</h1>
+          
+//             </Box>
+//           </Box>
+//         )
+//       })} */}
+
+//       ////////////////////////////////////////////d3Weather
+
+      import React, { useRef } from "react"
+import * as D3 from "d3"
+import { useD3 } from "d3blackbox"
+
+// remplissage  de data
+var dataset = [];
+var numDataPoints = 10;  
+var xRange = Math.random() * 1000;
+var yRange = Math.random() * 1000;   
+for (var i = 0; i < numDataPoints; i++) {
+    let  x = Math.round(Math.random() * xRange);
+    let  y = Math.round(Math.random() * yRange);
+	dataset.push([{x:x, y:y}])
+}
+// console.log(dataset)
+
+// var datasetBar = [28, 40, 56, 50, 75, 90, 120, 120, 500, 400];
+
+var chartWidth = 1000, chartHeight = 1000, barPadding = 5;
+var barWidth = (chartWidth / dataset.length);
+
+//definition des axes
+	// x = paddingLeft; y =paddingTop; 
+const Axis = ({ x, y, scale, axisType, ticks = 10 }) => {
+	const fnName = axisType === "left" ? "axisLeft" : "axisBottom"
+	const ref = useD3(el => D3.select(el).call(D3[fnName](scale).ticks(ticks)))
+	return <g transform={`translate(${x}, ${y})`}  ref={ref}/>
+ }
+
+
+
+const  Chart = ({temperature, main, feels_like, temp_min}) => {
+
+  
+    const datasetBar=[]
+    datasetBar.push( temperature )
+    
+	//taille svg
+	const height = 1000
+	const width = 1000
+		
+	//parameters....Lineaire
+	const xScale = D3.scaleLinear()  // definit une lligne
+	.domain([1,60])                    //  de une seconde a 60 sec = 1 minute
+	.range([0, width])
+	const yScale = D3.scaleLinear()
+	.domain([0, 10])
+	.range([height, 0])
+
+	//parameters....histograme  pour axe  abscisse e t  ordonneees
+	 const x = D3.scaleBand()
+	 .domain([0, 1000])
+	 .range([0, width])					// definit  la taille des bandes de l histogramme	
+//////////////////// accrochage useRef()	
+    const d3Ref = useRef()
+    const attachD3 = D3.select(d3Ref.current)
+    // console.log(d3Ref.current )
+//////////////////// definition  bar    
+    const barChart = attachD3.selectAll('rect')
+        .data(datasetBar)
+        .enter()
+        .append('rect')
+        .attr('y', function(d) {
+            return chartHeight - d 
+        })
+        .attr('height', function(d) {
+            return d;
+        })
+        .attr('width', barWidth -5)
+        .attr('fill', 'yellow')
+        .attr('transform', function (d, i) {
+            var translate = [barWidth * i, -50];
+            return 'translate('+ translate +')';
+            }
+        )
+
+//////////////////////////////ajout text histogramme
+    const textIndice = attachD3.selectAll('.myText')
+        .data(datasetBar)
+        .enter()
+        .append('text')
+        .attr('width', barWidth -50)
+        .attr('y', function(d) {
+            return chartHeight - d -50
+            })
+        .text(function(d){ return d})
+        .attr('fill', 'white')
+        .attr('transform', function (d, i) {
+            var translate = [barWidth * i, 0]
+            return 'translate('+ translate +')'
+            }
+        )
+
+    return (
+        <div style={{display:'flex', alignContent: 'center', justifyContent:'center', backgroundColor:'pink'}} >
+        <svg width={width} height={height} ref={d3Ref}>
+        {datasetBar.map( i => {
+                //    console.log(i[0])
+            return(  
+            <circle key = {i}  
+                cx={i[0] +50 }
+                cy= {300}
+                r={4}
+                fill="black"
+            />
+            )}
+        )}
+        <circle cx={50} cy={0+height-40} r={15}  fill="yellow" />
+            {/* <text x="500" y="500">SVG Text Example</text> */}
+            <Axis x={50} y={height - (40)} scale={xScale} axisType="bottom" />
+            <Axis x={50} y={0-40} scale={yScale} axisType="left" /> 
+            
+            
+            
+            <Axis x={50} y={ height - (height/2)} scale={xScale} axisType="bottom" />
+        </svg>
+        </div>
+    )   
+}
+
+export  default Chart

@@ -1,0 +1,54 @@
+import React from "react";
+import ReactDOM from "react-dom";
+import { QueryClient, QueryClientProvider, useQuery } from "react-query";
+import { ReactQueryDevtools } from "react-query/devtools";
+
+
+
+const queryClient = new QueryClient();
+
+
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Example />
+
+    </QueryClientProvider>
+  );
+}
+
+function Example() {
+  const { isLoading, error, data, isFetching } = useQuery("repoData", () =>
+    fetch(
+      "https://v6.exchangerate-api.com/v6/d9a2453faf3ce1842398602b/latest/USD"
+    ).then((res) => res.json())
+  );
+
+  if (isLoading) return "Loading...";
+  if (error) return "An error has occurred: " + error.message;
+
+  const newData =[]
+  newData.push(data)
+  return (
+    <div>
+      {newData.map(id=> {
+        return(
+          <div  key ={id}>
+            currency =  {id.base_code}<br />
+            time = {id.time_last_update_utc}<br />
+            conversionEUR ={id.conversion_rates.EUR}<br />
+            conversionUSD ={id.conversion_rates.USD}<br />
+            conversionCHF ={id.conversion_rates.CHF}<br />
+            conversionCNY ={id.conversion_rates.CNY}<br />
+            conversionMUR ={id.conversion_rates.MUR}<br />
+            conversionMGA ={id.conversion_rates.MGA}<br />
+            conversionCAD ={id.conversion_rates.CAD}<br />
+            conversionCOP ={id.conversion_rates.COP}
+           </div>
+        );
+      })}
+      <div>{isFetching ? "Updating..." : ""}</div>
+      <ReactQueryDevtools initialIsOpen />
+    </div>
+  );
+}
